@@ -1,7 +1,9 @@
 package com.manuel.suscripciones.exceptions;
 
+import jakarta.validation.ConstraintViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
@@ -22,5 +24,33 @@ public class GlobalExceptionHandler {
         return ResponseEntity.badRequest().body(error);
     }
 
-    // Aquí puedes agregar otros tipos de excepciones después (ej: EntityNotFoundException, etc.)
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<?> handleValidationException(MethodArgumentNotValidException e) {
+        Map<String, Object> error = new HashMap<>();
+        error.put("timestamp", LocalDateTime.now());
+        error.put("error", "Validación fallida");
+
+        Map<String, String> errores = new HashMap<>();
+        e.getBindingResult().getFieldErrors().forEach(err ->
+                errores.put(err.getField(), err.getDefaultMessage())
+        );
+
+        error.put("mensajes", errores);
+        return ResponseEntity.badRequest().body(error);
+    }
+
+    @ExceptionHandler(ConstraintViolationException.class)
+    public ResponseEntity<?> handleConstraintViolationException(ConstraintViolationException e) {
+        Map<String, Object> error = new HashMap<>();
+        error.put("timestamp", LocalDateTime.now());
+        error.put("error", "Parámetro inválido");
+
+        Map<String, String> errores = new HashMap<>();
+        e.getConstraintViolations().forEach(vio ->
+                errores.put(vio.getPropertyPath().toString(), vio.getMessage())
+        );
+
+        error.put("mensajes", errores);
+        return ResponseEntity.badRequest().body(error);
+    }
 }
