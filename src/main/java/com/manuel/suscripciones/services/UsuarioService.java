@@ -3,6 +3,7 @@ package com.manuel.suscripciones.services;
 import com.manuel.suscripciones.entities.Usuario;
 import com.manuel.suscripciones.repositories.UsuarioRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -13,6 +14,9 @@ public class UsuarioService {
 
     @Autowired
     private UsuarioRepository usuarioRepository;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     // Guardar usuario
     public Usuario crearUsuario(Usuario usuario) {
@@ -28,6 +32,9 @@ public class UsuarioService {
         if (usuarioExistente.isPresent()) {
             throw new IllegalArgumentException("El email ya está registrado.");
         }
+
+        // Cifrar contraseña
+        usuario.setPassword(passwordEncoder.encode(usuario.getPassword()));
 
         // Guardar el usuario
         return usuarioRepository.save(usuario);
